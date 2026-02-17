@@ -1,7 +1,7 @@
 "use client"
 
 import React, { Suspense } from 'react'
-import { loadStripe } from '@stripe/stripe-js'
+import { loadStripe, Appearance } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
 import { useSearchParams } from 'next/navigation'
 import { useCartStore } from '@/app/store/useCartStore'
@@ -14,7 +14,6 @@ function PaymentContent() {
   const clientSecret = searchParams.get('intent')
   const { totalPrice } = useCartStore()
 
-  // Xogta macmiilka (Tusaale ahaan - ka soo qaad Store haddii aad haysato)
   const customerData = {
     firstName: "Customer",
     lastName: "User",
@@ -22,6 +21,37 @@ function PaymentContent() {
     address: "Main Street 123",
     city: "Mogadishu",
     postcode: "252"
+  }
+
+  // Stripe Appearance Setup - Tani waxay meesha ka saaraysaa gaduudka
+  const appearance: Appearance = {
+    theme: 'flat', // Waxaan u isticmaalaynaa 'flat' si uu minimalist u noqdo
+    variables: {
+      fontFamily: 'Inter, sans-serif',
+      borderRadius: '0px',
+      colorPrimary: '#000000',
+      colorBackground: '#ffffff',
+      colorText: '#000000',
+      colorDanger: '#df1b41',
+      spacingGridRow: '24px',
+    },
+    rules: {
+      '.Input': {
+        border: '1px solid #e5e7eb',
+        boxShadow: 'none',
+      },
+      '.Input:focus': {
+        border: '1px solid #000000',
+        boxShadow: 'none',
+      },
+      '.Label': {
+        fontSize: '10px',
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: '0.1em',
+        marginBottom: '8px',
+      }
+    }
   }
 
   if (!clientSecret) {
@@ -33,48 +63,22 @@ function PaymentContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-20 px-6 font-sans">
+    <div className="min-h-screen bg-background pt-24 pb-20 px-6 font-sans text-foreground">
       <div className="max-w-xl mx-auto">
         
-        {/* Header - Beatrice Deck Trial Style */}
         <header className="mb-16">
-          <p className="text-[10px] tracking-[0.3em] text-muted-foreground mb-4 uppercase font-bold">Checkout / Payment</p>
-          <h1 className="text-6xl font-black tracking-tighter leading-[0.9] italic uppercase font-[Beatrice_Deck_Trial]">
+          <p className="text-[10px] tracking-[0.4em] text-muted-foreground mb-4 uppercase font-bold">Checkout / Payment</p>
+          <h1 className="text-6xl md:text-7xl font-black tracking-tighter leading-[0.85] italic uppercase font-[Beatrice_Deck_Trial]">
             Secure <br /> Checkout
           </h1>
         </header>
 
-        {/* Stripe Elements Container */}
         <div className="border-t-2 border-foreground pt-10">
           <Elements 
             stripe={stripePromise} 
             options={{ 
-                clientSecret,
-                appearance: {
-                    theme: 'none',
-                    variables: {
-                        fontFamily: 'Inter, sans-serif',
-                        borderRadius: '0px',
-                        colorPrimary: '#000000',
-                    },
-                    rules: {
-                      '.Input': {
-                        border: '1px solid #e5e7eb',
-                        padding: '16px',
-                        fontSize: '12px',
-                        textTransform: 'uppercase',
-                        borderRadius: '0px',
-                        backgroundColor: '#ffffff'
-                      },
-                      '.Label': {
-                        fontSize: '10px',
-                        fontWeight: '700',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.1em',
-                        marginBottom: '8px',
-                      }
-                    }
-                }
+              clientSecret,
+              appearance // Halkan ayaan u gudbinaynaa object-ka aan kor ku qeexnay
             }}
           >
             <CheckoutForm 
@@ -84,7 +88,6 @@ function PaymentContent() {
           </Elements>
         </div>
 
-        {/* Footer info */}
         <div className="mt-12 pt-8 border-t border-border">
           <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] leading-relaxed">
             All transactions are encrypted and secure. <br />
