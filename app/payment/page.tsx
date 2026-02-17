@@ -1,98 +1,146 @@
 "use client"
 
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import { loadStripe, Appearance } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
 import { useSearchParams } from 'next/navigation'
 import { useCartStore } from '@/app/store/useCartStore'
+import { db } from '@/lib/firebase'
+import { doc, getDoc } from 'firebase/firestore'
 import CheckoutForm from '@/components/CheckoutForm'
+import { Loader2 } from 'lucide-react'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 function PaymentContent() {
   const searchParams = useSearchParams()
   const clientSecret = searchParams.get('intent')
+  const orderId = searchParams.get('orderId')
   const { totalPrice } = useCartStore()
+  
+  const [customerData, setCustomerData] = useState<any>(null)
+  const [fetching, setFetching] = useState(true)
 
-  const customerData = {
-    firstName: "Customer",
-    lastName: "User",
-    email: "customer@example.com",
-    address: "Main Street 123",
-    city: "Mogadishu",
-    postcode: "252"
-  }
+  // 1. Soo saar xogta macmiilka ee dhabta ah ee ku jirta Firestore
+  useEffect(() => {
+    const fetchOrder = async () => {
+      if (!orderId) {
+        setFetching(false)
+        return
+      }
+      try {
+        const orderDoc = await getDoc(doc(db, "orders", orderId))
+        if (orderDoc.exists()) {
+          setCustomerData(orderDoc.data().customer)
+        }
+      } catch (error) {
+        console.error("Error fetching order:", error)
+      } finally {
+        setFetching(false)
+      }
+    }
+    fetchOrder()
+  }, [orderId])
 
-  // Stripe Appearance Setup - Tani waxay meesha ka saaraysaa gaduudka
+  // Stripe Appearance Setup (Custom UI)
   const appearance: Appearance = {
-    theme: 'flat', // Waxaan u isticmaalaynaa 'flat' si uu minimalist u noqdo
+    theme: 'none',
     variables: {
       fontFamily: 'Inter, sans-serif',
-      borderRadius: '0px',
-      colorPrimary: '#000000',
-      colorBackground: '#ffffff',
-      colorText: '#000000',
-      colorDanger: '#df1b41',
+      borderRadius: '12px',
+      colorPrimary: 'oklch(0.6361 0.1162 259.7710)', // --primary
+      colorBackground: 'oklch(1.0000 0 0)',         // --background
+      colorText: 'oklch(0.3211 0 0)',               // --foreground
+      colorDanger: 'oklch(0.6322 0.1310 21.4751)',   // --destructive
       spacingGridRow: '24px',
     },
     rules: {
       '.Input': {
-        border: '1px solid #e5e7eb',
+        border: '1px solid oklch(0.9281 0.0042 271.3672)', // --border
         boxShadow: 'none',
+        padding: '14px',
+        backgroundColor: 'oklch(0.9848 0 0)', // wax yar off-white ah
       },
       '.Input:focus': {
-        border: '1px solid #000000',
+        border: '1px solid oklch(0.3211 0 0)',
         boxShadow: 'none',
       },
       '.Label': {
-        fontSize: '10px',
-        fontWeight: '700',
-        textTransform: 'uppercase',
-        letterSpacing: '0.1em',
+        fontSize: '13px',
+        fontWeight: '600',
+        color: 'oklch(0.3211 0 0)',
         marginBottom: '8px',
       }
     }
   }
 
-  if (!clientSecret) {
+  if (fetching) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
-        <p className="font-black uppercase tracking-[0.3em] text-[10px]">Invalid Session</p>
+        <Loader2 className="animate-spin text-primary" size={24} />
+      </div>
+    )
+  }
+
+  if (!clientSecret || !customerData) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <p className="font-semibold text-sm text-muted-foreground tracking-tighter">
+            Invalid or expired session.
+          </p>
+          <button onClick={() => window.location.href = '/products'} className="text-xs font-semibold underline">
+            Return to shop
+          </button>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-20 px-6 font-sans text-foreground">
-      <div className="max-w-xl mx-auto">
+    <div className="min-h-screen bg-background pt-32 pb-20 px-6 font-sans text-foreground">
+      <div className="max-w-xl mx-auto text-left">
         
-        <header className="mb-16">
-          <p className="text-[10px] tracking-[0.4em] text-muted-foreground mb-4 uppercase font-bold">Checkout / Payment</p>
-          <h1 className="text-6xl md:text-7xl font-black tracking-tighter leading-[0.85] italic uppercase font-[Beatrice_Deck_Trial]">
-            Secure <br /> Checkout
+        <header className="mb-12">
+          <p className="text-xs font-semibold text-primary mb-4 tracking-tight">
+            Step 3: Secure Payment
+          </p>
+          <h1 className="text-5xl md:text-7xl font-semibold tracking-tighter leading-[0.9] text-foreground font-[Beatrice_Deck_Trial]">
+            Finalize <br /> Payment
           </h1>
+          <div className="mt-6 flex items-center gap-2 text-muted-foreground">
+            <span className="text-sm font-medium">{customerData.email}</span>
+            <span className="text-muted-foreground/30">•</span>
+            <span className="text-sm font-semibold text-foreground">${totalPrice} Due</span>
+          </div>
         </header>
 
-        <div className="border-t-2 border-foreground pt-10">
+        <div className="border-t border-border pt-12">
           <Elements 
             stripe={stripePromise} 
-            options={{ 
-              clientSecret,
-              appearance // Halkan ayaan u gudbinaynaa object-ka aan kor ku qeexnay
-            }}
+            options={{ clientSecret, appearance }}
           >
             <CheckoutForm 
               totalPrice={totalPrice || 0} 
               customerData={customerData} 
+              orderId={orderId} // U gudbi OrderId si loogu update-gareeyo status-ka
             />
           </Elements>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border">
-          <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] leading-relaxed">
-            All transactions are encrypted and secure. <br />
-            Powered by Stripe Technology.
-          </p>
+        <div className="mt-16 pt-8 border-t border-border/50">
+          <div className="flex items-start gap-4 text-muted-foreground">
+            <div className="p-2 bg-muted/50 rounded-lg">
+               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 text-primary"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold text-foreground mb-1">Encrypted Transaction</p>
+              <p className="text-[10px] font-medium leading-relaxed">
+                Your payment is processed securely by Stripe. We do not store your card details.
+                All data is transmitted via a secure 256-bit SSL connection.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -103,7 +151,10 @@ export default function PaymentPage() {
   return (
     <Suspense fallback={
       <div className="h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse font-black uppercase tracking-widest text-[10px]">INITIALIZING SECURE VAULT...</div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="font-semibold text-[11px] tracking-widest text-muted-foreground uppercase">Verifying Security...</p>
+        </div>
       </div>
     }>
       <PaymentContent />

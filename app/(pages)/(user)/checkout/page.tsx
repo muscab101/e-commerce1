@@ -43,7 +43,6 @@ const CheckoutPage = () => {
     setLoading(true)
 
     try {
-      // 1. SAVE TO FIREBASE
       const orderPayload = {
         customer: formData,
         items: cart,
@@ -54,7 +53,6 @@ const CheckoutPage = () => {
       }
       const docRef = await addDoc(collection(db, "orders"), orderPayload)
 
-      // 2. CALL STRIPE API
       const response = await fetch("/api/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -64,7 +62,6 @@ const CheckoutPage = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
 
-      // 3. REDIRECT TO PAYMENT
       router.push(`/payment?intent=${data.clientSecret}&orderId=${docRef.id}`);
 
     } catch (error: any) {
@@ -79,41 +76,50 @@ const CheckoutPage = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <button onClick={() => router.back()} className="mb-8 p-2 hover:bg-muted border border-border rounded-full transition-colors">
-          <ArrowLeft size={20} />
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        {/* Back Button */}
+        <button 
+          onClick={() => router.back()} 
+          className="mb-12 flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors group"
+        >
+          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          Back to Bag
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
           {/* LEFT: FORM FIELDS */}
-          <form onSubmit={handleConfirmOrder} className="lg:col-span-7 space-y-10">
+          <form onSubmit={handleConfirmOrder} className="lg:col-span-7 space-y-12 text-left">
             <header className="space-y-4">
-              <h1 className="text-5xl font-bold uppercase tracking-tighter italic font-[Beatrice_Deck_Trial]">Checkout</h1>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Information → Shipping → Payment</p>
+              <h1 className="text-6xl font-semibold tracking-tighter text-foreground font-[Beatrice_Deck_Trial]">
+                Checkout
+              </h1>
+              <p className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
+                Information <ChevronRight size={12} /> Shipping <ChevronRight size={12} /> Payment
+              </p>
             </header>
 
-            <div className="grid gap-10">
+            <div className="space-y-12">
               {/* Contact Section */}
-              <section className="space-y-4">
-                <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">Contact Info</h2>
+              <section className="space-y-6">
+                <h2 className="text-sm font-semibold text-foreground border-b border-border pb-2">Contact Information</h2>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <input name="email" type="email" required onChange={handleInputChange} placeholder="Email Address" className="w-full bg-card border border-input p-4 text-sm focus:border-primary outline-none transition-all" />
-                  <input name="phone" type="tel" required onChange={handleInputChange} placeholder="Phone Number" className="w-full bg-card border border-input p-4 text-sm focus:border-primary outline-none transition-all" />
+                  <input name="email" type="email" required onChange={handleInputChange} placeholder="Email Address" className="w-full bg-background border border-border p-4 text-sm font-medium focus:border-foreground outline-none transition-all rounded-md" />
+                  <input name="phone" type="tel" required onChange={handleInputChange} placeholder="Phone Number" className="w-full bg-background border border-border p-4 text-sm font-medium focus:border-foreground outline-none transition-all rounded-md" />
                 </div>
               </section>
 
               {/* Shipping Section */}
-              <section className="space-y-4">
-                <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">Shipping Details</h2>
+              <section className="space-y-6">
+                <h2 className="text-sm font-semibold text-foreground border-b border-border pb-2">Shipping Details</h2>
                 <div className="grid gap-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <input name="firstName" required onChange={handleInputChange} placeholder="First Name" className="bg-card border border-input p-4 text-sm focus:border-primary outline-none" />
-                    <input name="lastName" required onChange={handleInputChange} placeholder="Last Name" className="bg-card border border-input p-4 text-sm focus:border-primary outline-none" />
+                    <input name="firstName" required onChange={handleInputChange} placeholder="First Name" className="bg-background border border-border p-4 text-sm font-medium focus:border-foreground outline-none rounded-md" />
+                    <input name="lastName" required onChange={handleInputChange} placeholder="Last Name" className="bg-background border border-border p-4 text-sm font-medium focus:border-foreground outline-none rounded-md" />
                   </div>
-                  <input name="address" required onChange={handleInputChange} placeholder="Full Address (Street, House No.)" className="w-full bg-card border border-input p-4 text-sm focus:border-primary outline-none" />
+                  <input name="address" required onChange={handleInputChange} placeholder="Full Address" className="w-full bg-background border border-border p-4 text-sm font-medium focus:border-foreground outline-none rounded-md" />
                   <div className="grid grid-cols-2 gap-4">
-                    <input name="postcode" required onChange={handleInputChange} placeholder="Postcode / ZIP" className="bg-card border border-input p-4 text-sm focus:border-primary outline-none" />
-                    <input name="city" required onChange={handleInputChange} placeholder="City" className="bg-card border border-input p-4 text-sm focus:border-primary outline-none" />
+                    <input name="postcode" required onChange={handleInputChange} placeholder="Postcode" className="bg-background border border-border p-4 text-sm font-medium focus:border-foreground outline-none rounded-md" />
+                    <input name="city" required onChange={handleInputChange} placeholder="City" className="bg-background border border-border p-4 text-sm font-medium focus:border-foreground outline-none rounded-md" />
                   </div>
                 </div>
               </section>
@@ -121,24 +127,23 @@ const CheckoutPage = () => {
               <button 
                 type="submit" 
                 disabled={loading}
-                className="w-full md:w-80 bg-primary text-primary-foreground font-bold uppercase text-xs tracking-[0.2em] py-6 flex items-center justify-between px-8 hover:brightness-110 transition-all disabled:opacity-50"
+                className="w-full md:w-auto min-w-[280px] bg-foreground text-background font-semibold text-sm py-3 px-10 rounded-sm flex items-center justify-between hover:opacity-90 transition-all disabled:opacity-50 shadow-sm shadow-black/5"
               >
-                {loading ? "Processing..." : "Proceed to Payment"}
-                {loading ? <Loader2 className="animate-spin" size={18} /> : <CreditCard size={18} />}
+                {loading ? "Processing..." : "Continue to Payment"}
+                {loading ? <Loader2 className="animate-spin ml-4" size={20} /> : <CreditCard className="ml-4" size={20} />}
               </button>
             </div>
           </form>
 
-          {/* RIGHT: SUMMARY SIDEBAR WITH IMAGES */}
+          {/* RIGHT: SUMMARY SIDEBAR */}
           <div className="lg:col-span-5">
-            <div className="bg-card border border-border p-8 sticky top-10 shadow-sm rounded-sm">
-              <h2 className="font-bold uppercase text-xs tracking-widest mb-6 pb-4 border-b">Order Summary</h2>
+            <div className="bg-muted/30 backdrop-blur-xl border border-border p-10 sticky top-10 shadow-sm rounded-2xl text-left">
+              <h2 className="font-semibold text-base mb-8 text-foreground">Order Summary</h2>
               
-              <div className="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
                 {cart.map((item) => (
-                  <div key={item.id} className="flex gap-4 items-center">
-                    {/* Product Image */}
-                    <div className="w-20 h-20 bg-muted border border-border rounded-sm overflow-hidden flex-shrink-0">
+                  <div key={`${item.id}-${item.selectedSize}`} className="flex gap-5 items-center">
+                    <div className="w-20 h-24 bg-muted border border-border rounded-lg overflow-hidden flex-shrink-0">
                       <img 
                         src={item.image} 
                         alt={item.name} 
@@ -146,28 +151,35 @@ const CheckoutPage = () => {
                       />
                     </div>
                     
-                    {/* Product Details */}
-                    <div className="flex-1">
-                      <h3 className="text-xs font-bold uppercase tracking-tight leading-tight">{item.name}</h3>
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold mt-1">
-                        Qty: {item.quantity}
+                    <div className="flex-1 space-y-1">
+                      <h3 className="text-sm font-semibold text-foreground leading-tight">{item.name}</h3>
+                      <p className="text-[11px] text-muted-foreground font-medium">
+                        {item.selectedSize} / {item.selectedColor} — Qty {item.quantity}
                       </p>
-                      <p className="text-xs font-black mt-1">${(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="text-sm font-semibold mt-1">${(item.price * item.quantity).toFixed(2)}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t border-border pt-6 space-y-2">
-                <div className="flex justify-between items-center text-[10px] font-bold uppercase text-muted-foreground">
+              <div className="border-t border-border pt-6 space-y-4">
+                <div className="flex justify-between items-center text-sm font-medium text-muted-foreground">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span className="text-foreground">${subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between items-center pt-4">
-                  <span className="font-bold uppercase text-sm">Total</span>
-                  <span className="text-3xl font-black tracking-tighter">${subtotal.toFixed(2)}</span>
+                <div className="flex justify-between items-center text-sm font-medium text-muted-foreground">
+                  <span>Shipping</span>
+                  <span className="text-primary font-semibold">Complimentary</span>
+                </div>
+                <div className="flex justify-between items-center pt-4 border-t border-border/50">
+                  <span className="font-semibold text-base">Total Due</span>
+                  <span className="text-4xl font-semibold tracking-tighter text-foreground">${subtotal.toFixed(2)}</span>
                 </div>
               </div>
+              
+              <p className="mt-8 text-[10px] text-muted-foreground leading-relaxed">
+                By clicking "Continue to Payment", you agree to our Terms of Service. Your data is protected.
+              </p>
             </div>
           </div>
         </div>

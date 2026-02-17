@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from '@/components/ui/button'
-import { GalleryVerticalEnd, User, Settings, LogOut, UserCircle, ShoppingBag } from 'lucide-react'
+import { GalleryVerticalEnd, User, Settings, LogOut, UserCircle, ShoppingBag, Menu, PackageSearch } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { auth } from '@/lib/firebase'
 import { onAuthStateChanged, User as FirebaseUser, signOut } from 'firebase/auth'
@@ -16,6 +16,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/app/store/useCartStore'
@@ -26,10 +31,7 @@ const Navbar = () => {
     const [mounted, setMounted] = useState(false)
     const pathname = usePathname()
     
-    // 1. Ka soo rido cart-ka Zustand
     const cart = useCartStore((state) => state.cart)
-    
-    // 2. State gaar ah oo loogu talagalay tirada si looga fogaado hydration error
     const [cartCount, setCartCount] = useState(0)
 
     useEffect(() => {
@@ -41,7 +43,6 @@ const Navbar = () => {
         return () => unsubscribe()
     }, [])
 
-    // 3. Markasta oo cart-ku isbeddelo, Navbar-ka u sheeg (Real-time update)
     useEffect(() => {
         if (mounted) {
             setCartCount(cart.length)
@@ -68,6 +69,33 @@ const Navbar = () => {
         <nav className="fixed top-0 z-50 w-full px-4 pt-4">
             <div className="flex items-center justify-between w-full max-w-6xl h-16 px-6 mx-auto rounded-md border border-foreground/10 shadow-sm bg-background/60 backdrop-blur-md transition-all duration-300 relative z-[60]">
                 
+                {/* Mobile Hamburger - Only visible on small screens */}
+                <div className="flex md:hidden">
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <button className="p-2 outline-none">
+                                <Menu className="size-6 text-foreground" />
+                            </button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="bg-background/95 backdrop-blur-md border-r border-foreground/10">
+                            <div className="flex flex-col gap-8 mt-12">
+                                {items.map((item, index) => (
+                                    <Link 
+                                        key={index} 
+                                        href={item.url} 
+                                        className={cn(
+                                            "text-lg font-medium",
+                                            pathname === item.url ? "text-primary" : "text-foreground/60"
+                                        )}
+                                    >
+                                        {item.title}
+                                    </Link>
+                                ))}
+                            </div>
+                        </SheetContent>
+                    </Sheet>
+                </div>
+
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
                     <div className="flex size-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
@@ -75,7 +103,7 @@ const Navbar = () => {
                     </div>
                 </Link>
 
-                {/* Nav Items */}
+                {/* Nav Items - Desktop */}
                 <div className="hidden md:flex items-center gap-10">
                     {items.map((item, index) => {
                         const isActive = pathname === item.url
@@ -105,8 +133,6 @@ const Navbar = () => {
                     {/* CART BUTTON */}
                     <Link href="/cart" className="relative p-2 hover:bg-muted rounded-full transition-colors group">
                         <ShoppingBag className="size-5 text-foreground/70 group-hover:text-foreground transition-colors" />
-                        
-                        {/* Tirada dambiisha (Cart Count) */}
                         {mounted && cartCount > 0 && (
                             <span className="absolute -top-1 -right-1 size-5 bg-primary text-[10px] font-bold text-primary-foreground rounded-full flex items-center justify-center border-2 border-background animate-in zoom-in duration-300">
                                 {cartCount}
@@ -138,6 +164,13 @@ const Navbar = () => {
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     
+                                    {/* TRACK ORDER ITEM - CUSUB */}
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/orders" className="cursor-pointer flex items-center gap-2 text-sm font-medium">
+                                            <PackageSearch size={16} /> Track My Order
+                                        </Link>
+                                    </DropdownMenuItem>
+
                                     <DropdownMenuItem asChild>
                                         <Link href="/profile" className="cursor-pointer flex items-center gap-2 text-sm font-medium">
                                             <UserCircle size={16} /> Profile

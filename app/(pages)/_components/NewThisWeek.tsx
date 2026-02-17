@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { db, auth } from '@/lib/firebase'
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { useCartStore } from '@/app/store/useCartStore'
@@ -16,40 +16,62 @@ interface ProductCardProps {
   category: string;
   price: number;
   image: string;
-  onAddToCart: () => void;
+  onAddToCart: (e: React.MouseEvent) => void;
 }
 
-// 2. ProductCard Component (Gudaha ama File kale)
+// 2. ProductCard Component oo leh Design-ka cusub ee aad codsatay
 const ProductCard = ({ id, name, category, price, image, onAddToCart }: ProductCardProps) => {
   return (
-    <div className="group relative w-full">
-      <Link href={`/products/${id}`} className="block">
-        <div className="aspect-[3/4] overflow-hidden bg-[#F5F5F5] relative">
+    <div className="group relative w-full font-sans">
+      {/* Sawirka iyo Badhanka Plus-ka */}
+      <div className="relative aspect-[3/4] overflow-hidden bg-[#F2F2F2]">
+        <Link href={`/products/${id}`} className="block w-full h-full">
           <img 
             src={image} 
             alt={name} 
-            className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110" 
+            className="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105" 
           />
-        </div>
-        <div className="mt-6 space-y-1">
-          <div className="flex justify-between items-start">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] leading-tight max-w-[70%]">{name}</h3>
-            <p className="text-[11px] font-bold italic tracking-tighter">${price}</p>
+        </Link>
+        
+        {/* Badhanka Plus-ka ee dhexda kaga jira sawirka */}
+        <button 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onAddToCart(e);
+          }}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/90 p-3 shadow-sm hover:bg-[#5D4037] hover:text-white transition-all duration-300"
+        >
+          <Plus size={18} strokeWidth={1.5} />
+        </button>
+      </div>
+
+      {/* Macluumaadka Alaabta */}
+      <div className="mt-6">
+        <Link href={`/products/${id}`} className="block">
+          <div className="flex justify-between items-center gap-4">
+            <div className="space-y-1">
+              <p className="text-[10px] text-gray-500 tracking-widest uppercase">{category}</p>
+              <h3 className="text-[13px] font-medium text-[#1A1A1A] leading-tight tracking-tight uppercase">
+                {name}
+              </h3>
+            </div>
+            <p className="text-[13px] font-semibold text-[#1A1A1A]">${price}</p>
           </div>
-          <p className="text-[9px] text-gray-400 uppercase tracking-[0.3em]">{category}</p>
-        </div>
-      </Link>
-      
-      <button 
-        onClick={(e) => {
-          e.preventDefault(); // Jooji inuu Link-ga ku kaxeeyo
-          onAddToCart();
-        }}
-        className="mt-4 w-full border border-black py-4 text-[9px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-black hover:text-white transition-all duration-300"
-      >
-        <ShoppingCart size={12} />
-        Add to Cart
-      </button>
+        </Link>
+
+        {/* Badhanka Quick Add ee Design-ka cusub */}
+        <button 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onAddToCart(e);
+          }}
+          className="mt-4 w-full bg-[#5D4037] text-white py-3 text-sm font-semibold flex items-center justify-center gap-2 "
+        >
+          <Plus size={14} /> Quick Add
+        </button>
+      </div>
     </div>
   )
 }
@@ -83,12 +105,17 @@ const NewThisWeek = () => {
   const handleAddToCart = (product: any) => {
     const user = auth.currentUser;
     if (!user) {
-      toast.error("Fadlan login soo samey si aad wax u iibsato")
+      toast.error("Please login to make a purchase")
       router.push('/login');
       return;
     }
-    addToCart(product);
-    toast.success(`${product.name} waa lagu daray cart-ga!`);
+    // U gudbi xogta cart-ka
+    addToCart({
+      ...product,
+      image: product.images?.[0] || "/placeholder.png",
+      quantity: 1
+    });
+    toast.success(`${product.name.toUpperCase()} HAS BEEN ADDED`);
   }
 
   const scroll = (direction: 'left' | 'right') => {
@@ -106,12 +133,12 @@ const NewThisWeek = () => {
         
         <div className="flex justify-between items-end mb-12">
           <div className="flex items-start gap-2">
-            <h2 className="text-6xl md:text-7xl font-black tracking-tighter text-black uppercase leading-[0.85] font-[Beatrice_Deck_Trial]">
+            <h2 className="text-6xl md:text-7xl font-black tracking-tighter text-black ">
               NEW <br /> THIS WEEK
             </h2>
-            <span className="text-gray-300 font-bold text-xl">({products.length})</span>
+            <span className="text-primary font-bold text-xl">({products.length})</span>
           </div>
-          <Link href="/products" className="text-[10px] font-black text-gray-400 hover:text-black uppercase tracking-[0.4em] border-b border-transparent hover:border-black pb-1 transition-all">
+          <Link href="/products" className="text-sm  text-primary hover:text-black  border-b border-transparent hover:border-black pb-1 transition-all">
             View All Collection
           </Link>
         </div>
@@ -134,18 +161,19 @@ const NewThisWeek = () => {
                     category={product.category || "General"}
                     price={product.price}
                     image={product.images ? product.images[0] : "/placeholder.png"}
-                    onAddToCart={() => handleAddToCart(product)}
+                    onAddToCart={(e) => handleAddToCart(product)}
                   />
                 </div>
               ))
             )}
           </div>
 
+          {/* Navigation Controls */}
           <div className="flex justify-center gap-4 mt-8">
-             <button onClick={() => scroll('left')} className="size-14 flex items-center justify-center border border-gray-100 bg-white hover:bg-black hover:text-white transition-all duration-300">
+             <button onClick={() => scroll('left')} className="size-14 flex items-center justify-center border border-gray-100 bg-white hover:bg-primary hover:text-white transition-all duration-300">
                 <ChevronLeft size={24} strokeWidth={1} />
              </button>
-             <button onClick={() => scroll('right')} className="size-14 flex items-center justify-center border border-gray-100 bg-white hover:bg-black hover:text-white transition-all duration-300">
+             <button onClick={() => scroll('right')} className="size-14 flex items-center justify-center border border-gray-100 bg-white hover:bg-primary hover:text-white transition-all duration-300">
                 <ChevronRight size={24} strokeWidth={1} />
              </button>
           </div>
@@ -160,4 +188,4 @@ const NewThisWeek = () => {
   )
 }
 
-export default NewThisWeek
+export default NewThisWeek;

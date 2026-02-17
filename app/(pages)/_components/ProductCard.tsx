@@ -42,9 +42,9 @@ export const ProductCard = ({ id, name, category, price, image, onAddToCart }: P
       {/* Macluumaadka Alaabta */}
       <div className="mt-6">
         <Link href={`/products/${id}`} className="block">
-          <div className="flex justify-between items-start gap-4">
+          <div className="flex justify-between items-center gap-4">
             <div className="space-y-1">
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest">{category}</p>
+              <p className="text-[10px] text-gray-500 tracking-widest">{category}</p>
               <h3 className="text-[13px] font-medium text-[#1A1A1A] leading-tight tracking-tight">
                 {name}
               </h3>
@@ -60,7 +60,7 @@ export const ProductCard = ({ id, name, category, price, image, onAddToCart }: P
             e.stopPropagation();
             // Waxaad halkan dhigi kartaa handleAddToCart haddii aad rabto badhan weyn
           }}
-          className="mt-4 w-full bg-[#5D4037] text-white py-3 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          className="mt-4 w-full bg-[#5D4037] text-white py-3 text-sm font-semibold flex items-center justify-center gap-2 "
         >
           <Plus size={14} /> Quick Add
         </button>

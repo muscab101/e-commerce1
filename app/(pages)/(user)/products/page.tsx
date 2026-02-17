@@ -53,7 +53,6 @@ const ProductsPage = () => {
         ...doc.data()
       })) as Product[]
 
-      // Client-side Filtering
       if (selectedSize) {
         productData = productData.filter((p) => p.sizes?.includes(selectedSize))
       }
@@ -91,20 +90,21 @@ const ProductsPage = () => {
         selectedColor: selectedColor || (product.colors?.[0] || 'N/A'),
         quantity: 1
     } as any)
-    toast.success(`${product.name.toUpperCase()} ADDED TO BAG`)
+    toast.success(`${product.name} has been added`)
   }
 
   return (
-    <div className="min-h-screen bg-white pt-32 pb-20 font-sans">
+    <div className="min-h-screen bg-background pt-32 pb-20 font-sans">
       <div className="max-w-[1440px] mx-auto px-6 md:px-10">
         
+        {/* Header Section */}
         <div className="mb-20 text-left">
-          <p className="text-[10px] tracking-[0.4em] text-gray-400 mb-6 uppercase font-bold">
+          <p className="text-sm text-muted-foreground mb-6 font-semibold">
             Collections / {selectedCategory}
           </p>
-          <h1 className="text-7xl md:text-9xl font-black tracking-tighter leading-[0.8] italic uppercase">
+          <h1 className="text-7xl md:text-9xl font-semibold tracking-tighter leading-[0.8] text-foreground font-[Beatrice_Deck_Trial]">
             {selectedCategory === "All" ? "Global" : selectedCategory} <br /> 
-            <span className="text-gray-200">Archives</span>
+            <span className="text-primary">Archives</span>
           </h1>
         </div>
 
@@ -114,13 +114,17 @@ const ProductsPage = () => {
               
               {/* Category Filter */}
               <section>
-                <h3 className="text-[11px] font-black tracking-[0.3em] mb-8 uppercase">Category</h3>
+                <h3 className="text-sm font-semibold mb-8 text-foreground">Category</h3>
                 <div className="flex flex-col gap-4">
                   {["All", "Men", "Women", "Kids", "Accessories"].map((cat) => (
                     <button 
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
-                      className={`text-[10px] text-left uppercase tracking-[0.2em] transition-all ${selectedCategory === cat ? "font-black text-black border-l-2 border-black pl-4" : "text-gray-400 hover:text-black hover:pl-2"}`}
+                      className={`text-sm text-left transition-all duration-300 ${
+                        selectedCategory === cat 
+                        ? "font-semibold text-foreground border-l-2 border-primary pl-4" 
+                        : "text-muted-foreground hover:text-foreground hover:pl-2"
+                      }`}
                     >
                       {cat}
                     </button>
@@ -128,17 +132,25 @@ const ProductsPage = () => {
                 </div>
               </section>
 
-              {/* Color Filter */}
+              {/* Color Filter - Integrated with your theme */}
               <section>
-                <h3 className="text-[11px] font-black tracking-[0.3em] mb-8 uppercase">Color</h3>
+                <h3 className="text-sm font-semibold mb-8 text-foreground">Color</h3>
                 <div className="flex flex-wrap gap-3">
-                  {["Black", "White", "Red", "Blue", "Green", "Grey"].map((color) => (
+                  {[
+                    { name: "Black", var: "var(--foreground)" },
+                    { name: "White", var: "var(--background)" },
+                    { name: "Primary", var: "var(--primary)" },
+                    { name: "Secondary", var: "var(--secondary)" },
+                    { name: "Muted", var: "var(--muted)" }
+                  ].map((color) => (
                     <button
-                      key={color}
-                      onClick={() => setSelectedColor(selectedColor === color ? null : color)}
-                      className={`size-6 rounded-full border transition-all ${selectedColor === color ? 'ring-2 ring-black ring-offset-2' : 'border-gray-200'}`}
-                      style={{ backgroundColor: color.toLowerCase() }}
-                      title={color}
+                      key={color.name}
+                      onClick={() => setSelectedColor(selectedColor === color.name ? null : color.name)}
+                      className={`size-8 rounded-full border transition-all duration-300 ${
+                        selectedColor === color.name ? 'ring-2 ring-primary ring-offset-2 scale-110' : 'border-border'
+                      }`}
+                      style={{ backgroundColor: color.var }}
+                      title={color.name}
                     />
                   ))}
                 </div>
@@ -146,13 +158,16 @@ const ProductsPage = () => {
 
               {/* Size Filter */}
               <section>
-                <h3 className="text-[11px] font-black tracking-[0.3em] mb-8 uppercase">Size</h3>
+                <h3 className="text-sm font-semibold mb-8 text-foreground">Size</h3>
                 <div className="grid grid-cols-3 gap-2">
                   {["XS", "S", "M", "L", "XL", "2X"].map((size) => (
                     <button 
                       key={size}
                       onClick={() => setSelectedSize(selectedSize === size ? null : size)}
-                      className={`h-12 border flex items-center justify-center text-[10px] font-black transition-all ${selectedSize === size ? "bg-black text-white border-black" : "bg-white border-gray-100 hover:border-black text-gray-400"}`}
+                      className={`h-12 border flex items-center justify-center text-[11px] font-semibold transition-all duration-300
+                        ${selectedSize === size 
+                          ? "bg-foreground text-background border-foreground shadow-sm" 
+                          : "bg-background border-border hover:border-foreground text-muted-foreground"}`}
                     >
                       {size}
                     </button>
@@ -164,21 +179,22 @@ const ProductsPage = () => {
               {(selectedSize || selectedColor || selectedCategory !== "All") && (
                 <button 
                   onClick={() => { setSelectedCategory("All"); setSelectedSize(null); setSelectedColor(null); }}
-                  className="w-full py-4 border-2 border-black text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 border border-border text-[11px] font-semibold hover:bg-foreground hover:text-background transition-all flex items-center justify-center gap-2"
                 >
-                  <X size={14} /> Clear All
+                  <X size={14} /> Reset Filters
                 </button>
               )}
             </div>
           </aside>
 
           <main className="flex-1">
+            {/* Search Input */}
             <div className="relative mb-16 group">
-              <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-black transition-colors" size={18} />
+              <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-foreground transition-colors" size={18} />
               <input 
                 type="text"
-                placeholder="TYPE TO SEARCH..."
-                className="w-full pl-10 py-4 bg-transparent border-b border-gray-100 outline-none text-[11px] tracking-[0.3em] uppercase focus:border-black transition-all"
+                placeholder="Search collection..."
+                className="w-full pl-10 py-4 bg-transparent border-b border-border outline-none text-sm font-medium focus:border-foreground transition-all placeholder:text-muted-foreground/50"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -186,31 +202,30 @@ const ProductsPage = () => {
 
             {loading ? (
               <div className="h-96 flex flex-col items-center justify-center gap-4">
-                 <Loader2 className="animate-spin text-black" size={32} />
-                 <p className="text-[10px] font-black uppercase tracking-widest animate-pulse">Syncing Archives...</p>
+                  <Loader2 className="animate-spin text-primary" size={32} />
+                  <p className="text-xs font-semibold text-muted-foreground">Updating Gallery...</p>
               </div>
             ) : products.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-10 gap-y-20">
                 {products.map((product) => (
-                    <Link href={`/products/${product.id}`} key={product.id}>
-                      <ProductCard 
-                        id={product.id}
-                        name={product.name}
-                        category={product.category}
-                        price={product.price}
-                        image={product.images?.[0] || "/placeholder.png"}
-                        onAddToCart={(e: React.MouseEvent) => {
-                          e.preventDefault(); 
-                          e.stopPropagation(); 
-                          handleAddToCart(product);
-                        }}
-                      />
-                    </Link>
+                  <ProductCard 
+                    key={product.id}
+                    id={product.id}
+                    name={product.name}
+                    category={product.category}
+                    price={product.price}
+                    image={product.images?.[0] || "/placeholder.png"}
+                    onAddToCart={(e: React.MouseEvent) => {
+                      e.preventDefault(); 
+                      e.stopPropagation(); 
+                      handleAddToCart(product);
+                    }}
+                  />
                 ))}
               </div>
             ) : (
-              <div className="h-[60vh] flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-lg">
-                <p className="text-[11px] font-black tracking-[0.5em] text-gray-300 uppercase">Archive Empty</p>
+              <div className="h-[60vh] flex flex-col items-center justify-center border border-dashed border-border rounded-xl bg-muted/20">
+                <p className="text-sm font-semibold text-muted-foreground">No items found in this archive.</p>
               </div>
             )}
           </main>
