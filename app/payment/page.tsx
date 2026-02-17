@@ -10,7 +10,6 @@ import { doc, getDoc } from 'firebase/firestore'
 import CheckoutForm from '@/components/CheckoutForm'
 import { Loader2 } from 'lucide-react'
 
-// Hubi in KEY-ga uu ku jiro .env.local
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 function PaymentContent() {
@@ -42,9 +41,9 @@ function PaymentContent() {
     fetchOrder()
   }, [orderId])
 
-  // Stripe Appearance Setup (Fixed for TypeScript)
+  // --- HALKAN AYUU QALADKU KA JIRAY ---
   const appearance: Appearance = {
-    theme: 'flat', // Waxaan ka dhignay 'flat' halkii ay ka ahayd 'none' si looga fogaado error-ka Vercel
+    theme: 'flat', // 'none' halkan kama shaqeynayo TypeScript darteed
     variables: {
       fontFamily: 'Inter, sans-serif',
       borderRadius: '12px',
@@ -100,7 +99,6 @@ function PaymentContent() {
   return (
     <div className="min-h-screen bg-background pt-32 pb-20 px-6 font-sans text-foreground">
       <div className="max-w-xl mx-auto text-left">
-        
         <header className="mb-12">
           <p className="text-[11px] font-bold text-primary mb-4 tracking-[0.2em] uppercase">
             Step 3: Secure Payment
@@ -128,7 +126,6 @@ function PaymentContent() {
           </Elements>
         </div>
 
-        {/* Security Footer */}
         <div className="mt-16 pt-8 border-t border-border/50">
           <div className="flex items-start gap-4 text-muted-foreground">
             <div className="p-2 bg-muted/50 rounded-lg shrink-0">
