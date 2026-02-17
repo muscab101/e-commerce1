@@ -33,7 +33,7 @@ export function LoginForm({
     setIsLoading(true);
     setError("");
 
-    // 1. Admin Bypass (Manual check before Firebase)
+    // 1. Admin Bypass
     if (email === "admin1@gmail.com" && password === "admin123") {
       router.push("/admin/dashboard");
       router.refresh();
@@ -42,7 +42,7 @@ export function LoginForm({
     }
 
     try {
-      // 2. Standard User Authentication via Firebase
+      // 2. Standard User Authentication
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/");
       router.refresh();
@@ -76,7 +76,7 @@ export function LoginForm({
               <GalleryVerticalEnd className="size-6" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight">Welcome Back</h1>
-            <FieldDescription className="font-medium text-xs uppercase tracking-wide">
+            <FieldDescription className="font-medium text-xs">
               Don&apos;t have an account?{" "}
               <a href="/signup" className="text-primary font-bold hover:underline">
                 Sign up
@@ -91,7 +91,7 @@ export function LoginForm({
           )}
 
           <Field className="space-y-1">
-            <FieldLabel htmlFor="email" className="text-xs font-bold uppercase text-muted-foreground">Email Address</FieldLabel>
+            <FieldLabel htmlFor="email" className="text-xs font-bold text-muted-foreground">Email Address</FieldLabel>
             <Input
               id="email"
               type="email"
@@ -105,7 +105,7 @@ export function LoginForm({
           </Field>
 
           <Field className="space-y-1">
-            <FieldLabel htmlFor="password"  className="text-xs font-bold uppercase text-muted-foreground">Password</FieldLabel>
+            <FieldLabel htmlFor="password" className="text-xs font-bold text-muted-foreground">Password</FieldLabel>
             <Input
               id="password"
               type="password"
@@ -119,15 +119,15 @@ export function LoginForm({
           </Field>
 
           <Field>
-            <Button type="submit" className="w-full h-11 font-bold uppercase text-xs tracking-widest rounded-md" disabled={isLoading}>
+            <Button type="submit" className="w-full h-11 font-bold text-sm rounded-md" disabled={isLoading}>
               {isLoading ? <IconLoader2 className="animate-spin size-4 mr-2" /> : "Login"}
             </Button>
           </Field>
 
-          <FieldSeparator className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Or Continue With</FieldSeparator>
+          <FieldSeparator className="text-[11px] font-bold text-muted-foreground">Or continue with</FieldSeparator>
 
           <div className="w-full">
-            <Button variant="outline" type="button" className="w-full h-11 font-bold uppercase text-xs tracking-widest rounded-md border-border" onClick={handleGoogleSignIn} disabled={isLoading}>
+            <Button variant="outline" type="button" className="w-full h-11 font-bold text-sm rounded-md border-border" onClick={handleGoogleSignIn} disabled={isLoading}>
               <FcGoogle className="size-5 mr-2" />
               Google
             </Button>
@@ -135,7 +135,7 @@ export function LoginForm({
         </FieldGroup>
       </form>
       
-      <FieldDescription className="px-6 text-center text-[10px] font-medium leading-relaxed">
+      <FieldDescription className="px-6 text-center text-[11px] font-medium leading-relaxed">
         By clicking continue, you agree to our{" "}
         <a href="#" className="underline font-bold hover:text-primary">
           Terms of Service

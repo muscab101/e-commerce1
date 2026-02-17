@@ -46,10 +46,8 @@ export function SignupForm({
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const user = result.user;
 
-      // Update Firebase Auth Profile
       await updateProfile(user, { displayName: email.split("@")[0] });
 
-      // Create user document in Firestore
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         displayName: email.split("@")[0],
@@ -63,7 +61,6 @@ export function SignupForm({
       router.push('/');
       router.refresh();
     } catch (error: any) {
-      // English Error Handling
       if (error.code === 'auth/email-already-in-use') {
         setError("This email is already in use.");
       } else if (error.code === 'auth/weak-password') {
@@ -110,7 +107,7 @@ export function SignupForm({
               <GalleryVerticalEnd className="size-6" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Create Account</h1>
-            <FieldDescription className="text-xs font-bold uppercase tracking-wide">
+            <FieldDescription className="text-xs font-medium">
               Already have an account?{" "}
               <a href="/login" className="text-primary font-bold hover:underline">
                 Sign in
@@ -125,7 +122,7 @@ export function SignupForm({
           )}
 
           <Field className="space-y-1">
-            <FieldLabel htmlFor="email" className="text-xs font-bold uppercase text-muted-foreground">Email Address</FieldLabel>
+            <FieldLabel htmlFor="email" className="text-xs font-bold text-muted-foreground">Email Address</FieldLabel>
             <Input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -139,7 +136,7 @@ export function SignupForm({
           </Field>
 
           <Field className="space-y-1">
-            <FieldLabel htmlFor="password"  className="text-xs font-bold uppercase text-muted-foreground">Password</FieldLabel>
+            <FieldLabel htmlFor="password" className="text-xs font-bold text-muted-foreground">Password</FieldLabel>
             <Input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -153,7 +150,7 @@ export function SignupForm({
           </Field>
 
           <Field className="space-y-1">
-            <FieldLabel htmlFor="confirm-password" className="text-xs font-bold uppercase text-muted-foreground">Confirm Password</FieldLabel>
+            <FieldLabel htmlFor="confirm-password" className="text-xs font-bold text-muted-foreground">Confirm Password</FieldLabel>
             <Input
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -166,20 +163,20 @@ export function SignupForm({
             />
           </Field>
 
-          <Button type="submit" className="w-full h-11 font-bold uppercase text-xs tracking-widest rounded-md" disabled={isLoading}>
+          <Button type="submit" className="w-full h-11 font-bold text-sm rounded-md" disabled={isLoading}>
             {isLoading ? <IconLoader2 className="animate-spin size-4 mr-2" /> : "Create Account"}
           </Button>
 
-          <FieldSeparator className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Or</FieldSeparator>
+          <FieldSeparator className="text-[11px] font-bold text-muted-foreground">Or</FieldSeparator>
 
-          <Button variant="outline" type="button" className="w-full h-11 font-bold uppercase text-xs tracking-widest rounded-md border-border" onClick={handleGoogleSignIn} disabled={isLoading}>
+          <Button variant="outline" type="button" className="w-full h-11 font-bold text-sm rounded-md border-border" onClick={handleGoogleSignIn} disabled={isLoading}>
             <FcGoogle className="size-5 mr-2" />
             Continue with Google
           </Button>
         </FieldGroup>
       </form>
 
-      <FieldDescription className="px-6 text-center text-[10px] font-medium leading-relaxed">
+      <FieldDescription className="px-6 text-center text-[11px] font-medium leading-relaxed">
         By clicking continue, you agree to our{" "}
         <a href="#" className="underline font-bold hover:text-primary">Terms of Service</a>{" "}
         and <a href="#" className="underline font-bold hover:text-primary">Privacy Policy</a>.
