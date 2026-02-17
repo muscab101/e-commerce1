@@ -10,6 +10,7 @@ import { doc, getDoc } from 'firebase/firestore'
 import CheckoutForm from '@/components/CheckoutForm'
 import { Loader2 } from 'lucide-react'
 
+// Hubi in KEY-ga uu ku jiro .env.local
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 function PaymentContent() {
@@ -21,7 +22,6 @@ function PaymentContent() {
   const [customerData, setCustomerData] = useState<any>(null)
   const [fetching, setFetching] = useState(true)
 
-  // 1. Soo saar xogta macmiilka ee dhabta ah ee ku jirta Firestore
   useEffect(() => {
     const fetchOrder = async () => {
       if (!orderId) {
@@ -29,7 +29,7 @@ function PaymentContent() {
         return
       }
       try {
-        const orderDoc = await getDoc(doc(db, "orders", orderId))
+        const orderDoc = await getDoc(doc(db, "orders", orderId as string))
         if (orderDoc.exists()) {
           setCustomerData(orderDoc.data().customer)
         }
@@ -42,24 +42,24 @@ function PaymentContent() {
     fetchOrder()
   }, [orderId])
 
-  // Stripe Appearance Setup (Custom UI)
+  // Stripe Appearance Setup (Fixed for TypeScript)
   const appearance: Appearance = {
-    theme: 'none',
+    theme: 'flat', // Waxaan ka dhignay 'flat' halkii ay ka ahayd 'none' si looga fogaado error-ka Vercel
     variables: {
       fontFamily: 'Inter, sans-serif',
       borderRadius: '12px',
-      colorPrimary: 'oklch(0.6361 0.1162 259.7710)', // --primary
-      colorBackground: 'oklch(1.0000 0 0)',         // --background
-      colorText: 'oklch(0.3211 0 0)',               // --foreground
-      colorDanger: 'oklch(0.6322 0.1310 21.4751)',   // --destructive
+      colorPrimary: 'oklch(0.6361 0.1162 259.7710)', 
+      colorBackground: 'oklch(1.0000 0 0)',         
+      colorText: 'oklch(0.3211 0 0)',               
+      colorDanger: 'oklch(0.6322 0.1310 21.4751)',   
       spacingGridRow: '24px',
     },
     rules: {
       '.Input': {
-        border: '1px solid oklch(0.9281 0.0042 271.3672)', // --border
+        border: '1px solid oklch(0.9281 0.0042 271.3672)', 
         boxShadow: 'none',
         padding: '14px',
-        backgroundColor: 'oklch(0.9848 0 0)', // wax yar off-white ah
+        backgroundColor: 'oklch(0.9848 0 0)', 
       },
       '.Input:focus': {
         border: '1px solid oklch(0.3211 0 0)',
@@ -85,11 +85,11 @@ function PaymentContent() {
   if (!clientSecret || !customerData) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 px-6">
           <p className="font-semibold text-sm text-muted-foreground tracking-tighter">
             Invalid or expired session.
           </p>
-          <button onClick={() => window.location.href = '/products'} className="text-xs font-semibold underline">
+          <button onClick={() => window.location.href = '/products'} className="text-xs font-semibold underline uppercase tracking-widest">
             Return to shop
           </button>
         </div>
@@ -102,7 +102,7 @@ function PaymentContent() {
       <div className="max-w-xl mx-auto text-left">
         
         <header className="mb-12">
-          <p className="text-xs font-semibold text-primary mb-4 tracking-tight">
+          <p className="text-[11px] font-bold text-primary mb-4 tracking-[0.2em] uppercase">
             Step 3: Secure Payment
           </p>
           <h1 className="text-5xl md:text-7xl font-semibold tracking-tighter leading-[0.9] text-foreground font-[Beatrice_Deck_Trial]">
@@ -111,7 +111,7 @@ function PaymentContent() {
           <div className="mt-6 flex items-center gap-2 text-muted-foreground">
             <span className="text-sm font-medium">{customerData.email}</span>
             <span className="text-muted-foreground/30">•</span>
-            <span className="text-sm font-semibold text-foreground">${totalPrice} Due</span>
+            <span className="text-sm font-bold text-foreground">${totalPrice} Due</span>
           </div>
         </header>
 
@@ -123,19 +123,22 @@ function PaymentContent() {
             <CheckoutForm 
               totalPrice={totalPrice || 0} 
               customerData={customerData} 
-              orderId={orderId} // U gudbi OrderId si loogu update-gareeyo status-ka
+              orderId={orderId as string}
             />
           </Elements>
         </div>
 
+        {/* Security Footer */}
         <div className="mt-16 pt-8 border-t border-border/50">
           <div className="flex items-start gap-4 text-muted-foreground">
-            <div className="p-2 bg-muted/50 rounded-lg">
-               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 text-primary"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            <div className="p-2 bg-muted/50 rounded-lg shrink-0">
+               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 text-primary">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+               </svg>
             </div>
             <div>
-              <p className="text-[11px] font-semibold text-foreground mb-1">Encrypted Transaction</p>
-              <p className="text-[10px] font-medium leading-relaxed">
+              <p className="text-[11px] font-bold text-foreground mb-1 uppercase tracking-wider">Encrypted Transaction</p>
+              <p className="text-[10px] font-medium leading-relaxed opacity-70">
                 Your payment is processed securely by Stripe. We do not store your card details.
                 All data is transmitted via a secure 256-bit SSL connection.
               </p>
