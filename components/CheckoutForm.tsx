@@ -3,12 +3,13 @@
 import React, { useState } from 'react'
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { db, auth } from '@/lib/firebase'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { useCartStore } from '@/app/store/useCartStore'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
+// Waxaan ku darnay 'orderId' interface-ka si TypeScript uusan u dhibsan
 interface CheckoutFormProps {
   totalPrice: number;
   customerData: {
@@ -19,9 +20,10 @@ interface CheckoutFormProps {
     city: string;
     postcode: string;
   };
+  orderId: string; // <--- Tani waa muhiim si Build-ku u guuleysto
 }
 
-export default function CheckoutForm({ totalPrice, customerData }: CheckoutFormProps) {
+export default function CheckoutForm({ totalPrice, customerData, orderId }: CheckoutFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const router = useRouter()
@@ -34,7 +36,7 @@ export default function CheckoutForm({ totalPrice, customerData }: CheckoutFormP
     setLoading(true)
 
     try {
-      // 1. Stripe Payment
+      // 1. Stripe Payment Verification
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         redirect: 'if_required',
@@ -46,33 +48,27 @@ export default function CheckoutForm({ totalPrice, customerData }: CheckoutFormP
         return
       }
 
-      // 2. Haddii lacagtu dhacdo, u dir Firebase
+      // 2. Haddii lacagtu dhacdo (Succeeded), u update-garee Order-ka Firebase ku jira
       if (paymentIntent && paymentIntent.status === 'succeeded') {
-        await addDoc(collection(db, "orders"), {
-          userId: auth.currentUser?.uid || "guest",
-          customer: customerData,
-          items: cart.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image,
-            size: item.selectedSize || null
-          })),
-          total: totalPrice,
-          status: "pending",
+        const orderRef = doc(db, "orders", orderId);
+        
+        await updateDoc(orderRef, {
+          paymentStatus: "paid", // Waxaan u beddelaynaa in la bixiyey
+          status: "processing",  // Status-ka guud
           paymentId: paymentIntent.id,
-          createdAt: serverTimestamp(),
+          paidAt: serverTimestamp(),
+          // Waxaan hubineynaa in userId-ga uu sax yahay xataa hadduu guest yahay
+          userId: auth.currentUser?.uid || "guest",
         })
 
-        // 3. Nadiifi Store-ka & u weeci Success
+        // 3. Nadiifi Cart-ka & u weeci Success Page
         clearCart()
         toast.success("PAYMENT SUCCESSFUL")
         router.push('/success')
       }
     } catch (err) {
       console.error(err)
-      toast.error("DATABASE_ERROR: COULD NOT SAVE ORDER")
+      toast.error("DATABASE_ERROR: COULD NOT UPDATE ORDER")
     } finally {
       setLoading(false)
     }
@@ -80,10 +76,12 @@ export default function CheckoutForm({ totalPrice, customerData }: CheckoutFormP
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <div className="bg-white p-4 border border-border">
+      {/* Stripe Card Input UI */}
+      <div className="bg-white p-4 border border-border rounded-md shadow-sm">
         <PaymentElement />
       </div>
       
+      {/* Submit Button */}
       <button
         disabled={loading || !stripe}
         className="w-full bg-black text-white font-black uppercase text-[11px] tracking-[0.3em] py-6 flex items-center justify-center gap-3 hover:bg-zinc-900 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
@@ -94,6 +92,11 @@ export default function CheckoutForm({ totalPrice, customerData }: CheckoutFormP
           `Complete Purchase — $${(totalPrice || 0).toFixed(2)}`
         )}
       </button>
+
+      {/* Security Badge */}
+      <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest opacity-60">
+        Secure encrypted checkout provided by Stripe
+      </p>
     </form>
   )
 }
